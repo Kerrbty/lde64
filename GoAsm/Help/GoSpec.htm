@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="Generator" content="Author's own Paws - see www.GoDevTool.com">
+   <meta name="keywords" content="GoLink, "Go" tools, linker, linker specification">
+   <title>Go linker specification for /unused switch</title>
+   <!--Copyright Jeremy Gordon 2002-->
+   <style>
+   <!--
+   A {color: #0000FF; font: bold 10pt times}
+   A:Visited {color: #333399}
+   A:Hover {color: #009900}
+   -->
+   </style>
+</HEAD>
+<BODY>
+<a href="GoLink.htm">Back to GoLink manual</a>
+<h1>Go linker specification for /unused switch</h1>
+By Jeremy Gordon - <img SRC="mail6sblue.gif" height=13 width=93 align="top" vspace="5">
+<p>
+The /unused switch in GoLink reports data and code labels which are
+unreferenced.  Usually these relate to redundant data declarations and
+code which remain after the development process.  Now it is possible easily
+to discover these and to weed them out.
+<br>To enable the linker to give this report it is necessary for both 
+the assembler or compiler and the linker to work together.  This is because
+the assembler or compiler will often already have fixed-up references to 
+labels in the object file.  
+<br>For example, in this simple program:-
+<pre>
+CALCULATE:
+ADD EAX,EDX
+RET
+;
+START:
+CALL CALCULATE
+RET
+</pre>
+The CALL to the function CALCULATE will be coded as a relative call, and
+since both the CALL itself and the destination of the CALL are in the
+same section the assembler will know and be able to apply the correct 
+distance for execution to be transferred.  This means that there will
+be no COFF relocation in relation to the CALL in the object file and the 
+linker will have no fix-up to do. In turn this means that the linker will 
+have no means of knowing whether the label CALCULATE has been referenced 
+or not.
+<p>In "Go" format object files, any symbol which
+is referenced and dealt with by the assembler or compiler has the flag
+2000h set at +0Eh in the symbol table (this is the "type" field in the
+symbol table).  If GoLink finds this flag set, the symbol concerned will
+not be reported as unreferenced.  Accordingly the information from the
+assembler or compiler ensures that GoLink's unused label report is accurate.
+<br>This flag can also be used by the assembler or compiler to ensure
+that certain labels are omitted from GoLink's unused report.  For example,
+GoAsm regards each named member of a structure as a label in its own right.
+Since it is likely that a number of such members are not directly referenced
+they will appear in the unused report unless they are suppressed. Accordingly
+GoAsm flags all structure members as 2000h (but not the structure label
+itself) to suppress these labels in the unused report.
+<p>In practice it is also necessary for the assembler or compiler to
+indicate to GoLink that the object file is in "Go" format.  This is
+achieved by ensuring that the very first symbol (ie. the first symbol
+table in the object file) is called "goformat" (lower case and without
+the quotation marks), with a section number of -2 and a storage class
+of 67h.  GoLink then knows that it can give an accurate report of unused
+labels if the /unused switch is set by the user.
+<p>GoLink does not look for symbols in .res files or .obj files which
+contain only resource information, so it is not necessary to change the
+formats of those.
+</BODY>
+</HTML>
+
+             

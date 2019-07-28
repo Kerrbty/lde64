@@ -14,4 +14,4 @@ This is the source code of the original LDE64 available on [www.beaengine.org](h
 
 Building process is not available because not yet really clean.
 
-
+GoAsm.exe /x64 LDE64.asm 
